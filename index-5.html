@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GameZone</title>
+<meta name="theme-color" content="#07051a">
+<meta name="description" content="GameZone is a free arcade site with a playable cube-jumping game for phones and computers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Layout: arcade cabinet page. Sticky neon header, split hero with a looping demo scene, one framed game screen, then a grid of game cards. */
+  --bg: #07051a;
+  --panel: #0f0a2e;
+  --panel2: #1a1048;
+  --line: #2f2570;
+  --purple: #b14cff;
+  --blue: #3b8cff;
+  --fg: #ece8ff;
+  --muted: #a39dd6;
+  --font-display: "Press Start 2P", ui-monospace, "Courier New", monospace;
+  --font-body: "Chakra Petch", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--bg);
+  z-index: 10;
+}
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+a { color: inherit; }
+:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+/* Header */
+.top {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 20;
+  background: rgba(7, 5, 26, 0.9);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; }
+.logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; }
+.logo svg { flex: none; filter: drop-shadow(0 0 8px rgba(177, 76, 255, 0.8)); }
+.logo-text { font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.02em; white-space: nowrap; }
+.logo-text .zone {
+  background: linear-gradient(100deg, var(--purple), var(--blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.nav { display: flex; gap: 6px; }
+.nav a {
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 10px 12px;
+  color: var(--muted);
+}
+.nav a:hover { color: #fff; }
+
+/* Hero */
+.hero { position: relative; overflow: hidden; isolation: isolate; border-bottom: 1px solid var(--line); }
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(60% 80% at 82% 18%, rgba(177, 76, 255, 0.3), transparent 70%),
+    radial-gradient(55% 70% at 8% 95%, rgba(59, 140, 255, 0.24), transparent 70%);
+}
+.hero-grid {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: 0;
+  height: 50%;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(177, 76, 255, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 140, 255, 0.35) 1px, transparent 1px);
+  background-size: 48px 48px;
+  transform: perspective(320px) rotateX(58deg);
+  transform-origin: bottom;
+  -webkit-mask-image: linear-gradient(to top, #000, transparent);
+  mask-image: linear-gradient(to top, #000, transparent);
+  animation: gridmove 2.4s linear infinite;
+}
+@keyframes gridmove { to { background-position: 0 48px, 48px 0; } }
+.hero-in { display: grid; gap: 36px; padding-block: 40px 52px; align-items: center; }
+.hero-copy { min-width: 0; }
+.eyebrow {
+  margin: 0 0 18px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1rem, 2.4vw + 0.4rem, 1.8rem);
+  line-height: 1.65;
+  text-wrap: balance;
+}
+h1 span { display: block; }
+h1 .l3 {
+  background: linear-gradient(100deg, var(--purple), var(--blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 0 12px rgba(177, 76, 255, 0.55));
+}
+.lead { margin: 22px 0 0; max-width: 46ch; color: var(--muted); font-size: 1.08rem; }
+.play-wrap {
+  display: inline-block;
+  margin-top: 28px;
+  filter: drop-shadow(0 0 16px rgba(177, 76, 255, 0.65)) drop-shadow(0 0 30px rgba(59, 140, 255, 0.35));
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse { 50% { transform: scale(1.035); } }
+.btn-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 68px;
+  padding: 24px 40px;
+  border: 0;
+  cursor: pointer;
+  color: #fff;
+  font: 400 clamp(1rem, 3.4vw, 1.3rem) / 1 var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  background: linear-gradient(100deg, #8e3bff, #2f7bff);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-play:hover { background: linear-gradient(100deg, #a35cff, #4a8cff); }
+.fine { margin: 16px 0 0; font-size: 0.9rem; color: var(--muted); }
+
+.hero-art {
+  min-width: 0;
+  border: 2px solid var(--purple);
+  box-shadow: 0 0 24px rgba(177, 76, 255, 0.4), 0 0 60px rgba(59, 140, 255, 0.18);
+  background: #0b0630;
+  line-height: 0;
+}
+.hero-art svg { width: 100%; height: auto; display: block; }
+.hz-cube { transform-box: fill-box; transform-origin: center; animation: hop 3s linear infinite; }
+.hz-spike { animation: slide 3s linear infinite; }
+@keyframes hop {
+  0% { transform: translateY(0) rotate(0); animation-timing-function: ease-out; }
+  60% { transform: translateY(0) rotate(0); animation-timing-function: ease-out; }
+  71% { transform: translateY(-84px) rotate(180deg); animation-timing-function: ease-in; }
+  82% { transform: translateY(0) rotate(360deg); }
+  100% { transform: translateY(0) rotate(360deg); }
+}
+@keyframes slide { from { transform: translateX(440px); } to { transform: translateX(-60px); } }
+
+/* Sections */
+section { scroll-margin-top: calc(72px + env(safe-area-inset-top, 0px)); }
+.block { padding-block: 44px 12px; }
+h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(1.05rem, 2.6vw + 0.3rem, 1.5rem); line-height: 1.5; text-wrap: balance; }
+.sub { margin: 10px 0 0; color: var(--muted); max-width: 60ch; }
+
+/* Game */
+.cabinet { max-width: 860px; margin: 22px auto 0; }
+.hud { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.stat { background: var(--panel); border: 1px solid var(--line); padding: 8px 10px; min-width: 0; }
+.stat span { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.stat b { display: block; font: 400 clamp(0.8rem, 3.6vw, 1.1rem) / 1.6 var(--font-display); font-variant-numeric: tabular-nums; }
+.screen {
+  position: relative;
+  border: 2px solid var(--purple);
+  box-shadow: 0 0 0 1px #000, 0 0 24px rgba(177, 76, 255, 0.45), 0 0 60px rgba(59, 140, 255, 0.2);
+  background: #0b0630;
+  line-height: 0;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+canvas { display: block; width: 100%; aspect-ratio: 3 / 2; touch-action: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+canvas:focus { outline: none; }
+canvas:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  text-align: center;
+  line-height: 1.4;
+  pointer-events: none;
+  background: rgba(7, 5, 26, 0.38);
+  transition: opacity 0.15s;
+}
+.overlay.hide { opacity: 0; }
+.overlay.hide .btn { pointer-events: none; }
+.ov-title { margin: 0; font: 400 clamp(1.1rem, 5vw, 2rem) / 1.3 var(--font-display); text-shadow: 0 0 16px var(--purple); }
+.ov-sub { margin: 0; font-size: clamp(0.9rem, 2.6vw, 1.1rem); font-weight: 500; }
+.ov-sub.blink { animation: blink 1.2s steps(2, jump-none) infinite; }
+@keyframes blink { 50% { opacity: 0.35; } }
+.overlay .btn { pointer-events: auto; }
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas: "jump jump" "restart sound";
+  gap: 12px;
+  margin-top: 14px;
+}
+.btn {
+  min-height: 52px;
+  padding: 0 20px;
+  font: 700 0.95rem var(--font-body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg);
+  background: var(--panel2);
+  border: 1.5px solid var(--line);
+  border-radius: 2px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.btn:hover { border-color: var(--purple); }
+.btn:active { transform: translateY(1px); }
+.btn-jump {
+  grid-area: jump;
+  min-height: 76px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 400;
+  color: #fff;
+  background: linear-gradient(100deg, #8e3bff, #2f7bff);
+  border-color: transparent;
+  touch-action: none;
+}
+#restartBtn { grid-area: restart; }
+#soundBtn { grid-area: sound; }
+.hint { margin: 14px 0 0; color: var(--muted); font-size: 0.95rem; }
+
+/* Cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 18px; margin-top: 24px; }
+.card { display: flex; flex-direction: column; min-width: 0; background: var(--panel); border: 1px solid var(--line); transition: transform 0.15s, border-color 0.15s; }
+.card:hover { transform: translateY(-3px); border-color: var(--purple); }
+.thumb { display: block; width: 100%; height: auto; background: linear-gradient(180deg, #120a3d, #25126b); }
+.card.soon .thumb { filter: saturate(0.55) brightness(0.8); }
+.card-body { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px 16px 18px; flex: 1; min-width: 0; }
+.tag { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; padding: 4px 9px; }
+.tag.live { background: var(--purple); color: #14052e; }
+.tag.soon { border: 1px solid var(--line); color: var(--muted); }
+.card h3 { margin: 0; font: 400 0.9rem / 1.5 var(--font-display); }
+.card p { margin: 0; color: var(--muted); font-size: 0.96rem; }
+.card .btn { margin-top: auto; display: inline-flex; align-items: center; text-decoration: none; background: linear-gradient(100deg, #8e3bff, #2f7bff); border-color: transparent; color: #fff; }
+
+footer { margin-top: 56px; border-top: 1px solid var(--line); padding-block: 26px 36px; color: var(--muted); font-size: 0.9rem; }
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+footer p { margin: 0; }
+
+@media (min-width: 720px) {
+  canvas { aspect-ratio: 2 / 1; }
+  .controls { grid-template-columns: 2fr 1fr 1fr; grid-template-areas: "jump restart sound"; }
+  .btn-jump { min-height: 64px; }
+  .logo-text { font-size: 1rem; }
+}
+@media (min-width: 960px) {
+  .hero-in { grid-template-columns: 1.3fr 1fr; gap: 48px; padding-block: 64px 72px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="GameZone home">
+      <svg viewBox="0 0 44 44" width="38" height="38" aria-hidden="true">
+        <defs><linearGradient id="lgG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b14cff"/><stop offset="1" stop-color="#3b8cff"/></linearGradient></defs>
+        <path d="M10 3H41V34L34 41H3V10Z" fill="#12093a" stroke="url(#lgG)" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M13 14H31L13 30H31" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="square"/>
+      </svg>
+      <span class="logo-text">GAME<span class="zone">ZONE</span></span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#play">Play</a>
+      <a href="#games">Games</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" id="top">
+    <div class="hero-grid" aria-hidden="true"></div>
+    <div class="wrap hero-in">
+      <div class="hero-copy">
+        <p class="eyebrow">Free arcade. Plays in your browser.</p>
+        <h1><span class="l1">Play Games.</span> <span class="l2">Beat Records.</span> <span class="l3">Become a Legend!</span></h1>
+        <p class="lead">Jump the cube, dodge the spikes and chase your best score. Works on phones and computers, with nothing to download.</p>
+        <div class="play-wrap">
+          <button class="btn-play" id="playNow" type="button">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 3L21 12L5 21Z" fill="#fff"/></svg>
+            Play Now
+          </button>
+        </div>
+        <p class="fine">Free to play. Your best score is saved on this device.</p>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 420 260">
+          <defs>
+            <linearGradient id="hzS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b8cff"/><stop offset="1" stop-color="#d04bff"/></linearGradient>
+            <linearGradient id="hzC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#52a4ff"/><stop offset="1" stop-color="#8f3dff"/></linearGradient>
+          </defs>
+          <rect width="420" height="260" fill="#0b0630"/>
+          <g fill="#fff" opacity="0.8"><rect x="30" y="30" width="2" height="2"/><rect x="90" y="60" width="2" height="2"/><rect x="150" y="24" width="3" height="3"/><rect x="210" y="52" width="2" height="2"/><rect x="360" y="28" width="2" height="2"/><rect x="60" y="100" width="2" height="2"/><rect x="390" y="90" width="3" height="3"/></g>
+          <circle cx="290" cy="112" r="62" fill="url(#hzS)"/>
+          <g fill="#0b0630"><rect x="220" y="124" width="140" height="3"/><rect x="220" y="140" width="140" height="5"/><rect x="220" y="158" width="140" height="7"/></g>
+          <path d="M0 200L40 150L80 185L130 128L190 190L240 158L300 192L350 140L420 200Z" fill="#160a4a" stroke="#3b8cff" stroke-opacity="0.5" stroke-width="1.5"/>
+          <rect y="200" width="420" height="60" fill="#13093f"/>
+          <path d="M0 214H420M0 232H420" stroke="#7d64ff" stroke-opacity="0.3"/>
+          <path d="M0 200H420" stroke="#d58bff" stroke-width="3"/>
+          <g class="hz-spike"><path d="M0 200L22 154L44 200Z" fill="#1b0d52" stroke="#d36bff" stroke-width="2.5" stroke-linejoin="round"/></g>
+          <g class="hz-cube">
+            <rect x="80" y="156" width="44" height="44" fill="url(#hzC)" stroke="#d9e8ff" stroke-width="2.5"/>
+            <rect x="92" y="170" width="7" height="10" fill="#fff"/><rect x="106" y="170" width="7" height="10" fill="#fff"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section id="play" class="block">
+    <div class="wrap">
+      <h2>Cube Dash</h2>
+      <p class="sub">Tap the screen to jump over the spikes. The longer you survive, the faster it gets.</p>
+      <div class="cabinet">
+        <div class="hud">
+          <div class="stat"><span>Score</span><b id="score">00000</b></div>
+          <div class="stat"><span>Best</span><b id="best">00000</b></div>
+          <div class="stat"><span>Attempt</span><b id="attempt">0</b></div>
+        </div>
+        <div class="screen" id="screen">
+          <canvas id="game" tabindex="0" aria-label="Cube Dash game screen. Tap, press Space or the up arrow to jump."></canvas>
+          <div class="overlay" id="overlay">
+            <p class="ov-title" id="ovTitle">CUBE DASH</p>
+            <p class="ov-sub blink" id="ovSub">Tap the screen to start</p>
+            <button class="btn" id="ovBtn" type="button" hidden>Restart</button>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="btn btn-jump" id="jumpBtn" type="button">Jump</button>
+          <button class="btn" id="restartBtn" type="button">Restart</button>
+          <button class="btn" id="soundBtn" type="button" aria-pressed="false">Sound on</button>
+        </div>
+        <p class="hint">Tap the screen or the Jump button on a phone. On a computer, press Space or the up arrow. Hold to keep hopping.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="games" class="block">
+    <div class="wrap">
+      <h2>Games</h2>
+      <p class="sub">Cube Dash is live now. The rest of the arcade is on its way.</p>
+      <div class="cards">
+        <article class="card live">
+          <svg class="thumb" viewBox="0 0 200 100" aria-hidden="true">
+            <path d="M0 78H200" stroke="#b14cff" stroke-width="2.5"/>
+            <g transform="rotate(-12 50 62)"><rect x="34" y="46" width="32" height="32" fill="#3b8cff" stroke="#d9e8ff" stroke-width="2"/><rect x="41" y="55" width="5" height="7" fill="#fff"/><rect x="53" y="55" width="5" height="7" fill="#fff"/></g>
+            <path d="M120 78L134 44L148 78ZM148 78L162 44L176 78Z" fill="#1b0d52" stroke="#d36bff" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+          <div class="card-body">
+            <span class="tag live">Play now</span>
+            <h3>Cube Dash</h3>
+            <p>Jump the cube over the spikes and push your best score as the speed climbs.</p>
+            <a class="btn" href="#play">Play</a>
+          </div>
+        </article>
+        <article class="card soon">
+          <svg class="thumb" viewBox="0 0 200 100" aria-hidden="true">
+            <path d="M0 26H200" stroke="#b14cff" stroke-width="2"/>
+            <path d="M96 26L8 100M104 26L192 100" stroke="#3b8cff" stroke-width="2.5"/>
+            <path d="M100 32V42M100 52V66M100 78V96" stroke="#b14cff" stroke-width="3"/>
+            <rect x="84" y="70" width="32" height="14" fill="#b14cff"/><rect x="90" y="62" width="20" height="10" fill="#3b8cff"/><rect x="82" y="82" width="8" height="6" fill="#fff"/><rect x="110" y="82" width="8" height="6" fill="#fff"/>
+          </svg>
+          <div class="card-body">
+            <span class="tag soon">Coming soon</span>
+            <h3>Neon Racer</h3>
+            <p>Steer through a glowing night highway and beat the lap clock.</p>
+          </div>
+        </article>
+        <article class="card soon">
+          <svg class="thumb" viewBox="0 0 200 100" aria-hidden="true">
+            <g fill="#b14cff"><rect x="26" y="16" width="24" height="8"/><rect x="30" y="24" width="16" height="8"/><rect x="26" y="32" width="6" height="6"/><rect x="44" y="32" width="6" height="6"/>
+            <rect x="88" y="16" width="24" height="8"/><rect x="92" y="24" width="16" height="8"/><rect x="88" y="32" width="6" height="6"/><rect x="106" y="32" width="6" height="6"/>
+            <rect x="150" y="16" width="24" height="8"/><rect x="154" y="24" width="16" height="8"/><rect x="150" y="32" width="6" height="6"/><rect x="168" y="32" width="6" height="6"/></g>
+            <path d="M100 52V66" stroke="#fff" stroke-width="3"/>
+            <path d="M100 74L88 94H112Z" fill="#3b8cff" stroke="#d9e8ff" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+          <div class="card-body">
+            <span class="tag soon">Coming soon</span>
+            <h3>Pixel Blaster</h3>
+            <p>Blast waves of pixel invaders before they reach the ground.</p>
+          </div>
+        </article>
+        <article class="card soon">
+          <svg class="thumb" viewBox="0 0 200 100" aria-hidden="true">
+            <path d="M20 18H180V82H60V46H140V66H92" fill="none" stroke="#3b8cff" stroke-width="4" stroke-linecap="square"/>
+            <path d="M20 40H40V64H20" fill="none" stroke="#b14cff" stroke-width="4" stroke-linecap="square"/>
+            <circle cx="92" cy="66" r="6" fill="#b14cff"/>
+          </svg>
+          <div class="card-body">
+            <span class="tag soon">Coming soon</span>
+            <h3>Maze Glow</h3>
+            <p>Guide a light through twisting mazes before the timer runs out.</p>
+          </div>
+        </article>
+        <article class="card soon">
+          <svg class="thumb" viewBox="0 0 200 100" aria-hidden="true">
+            <path d="M50 0V100M90 0V100M130 0V100M170 0V100" stroke="#3b2f94" stroke-width="2"/>
+            <circle cx="50" cy="24" r="9" fill="#b14cff"/><circle cx="130" cy="46" r="9" fill="#3b8cff"/><circle cx="90" cy="64" r="9" fill="#b14cff"/><circle cx="170" cy="14" r="9" fill="#3b8cff"/>
+            <path d="M30 84H190" stroke="#d58bff" stroke-width="3"/>
+            <circle cx="90" cy="84" r="11" fill="none" stroke="#fff" stroke-width="2"/>
+          </svg>
+          <div class="card-body">
+            <span class="tag soon">Coming soon</span>
+            <h3>Rhythm Tap</h3>
+            <p>Tap the falling notes in time with the beat.</p>
+          </div>
+        </article>
+        <article class="card soon">
+          <svg class="thumb" viewBox="0 0 200 100" aria-hidden="true">
+            <g stroke="#d9e8ff" stroke-width="1.5"><rect x="44" y="72" width="32" height="18" fill="#b14cff"/><rect x="76" y="72" width="32" height="18" fill="#3b8cff"/><rect x="108" y="72" width="32" height="18" fill="#b14cff"/>
+            <rect x="60" y="54" width="32" height="18" fill="#3b8cff"/><rect x="92" y="54" width="32" height="18" fill="#b14cff"/>
+            <rect x="76" y="36" width="32" height="18" fill="#b14cff"/>
+            <rect x="124" y="12" width="32" height="18" fill="#3b8cff" opacity="0.6"/></g>
+          </svg>
+          <div class="card-body">
+            <span class="tag soon">Coming soon</span>
+            <h3>Block Stacker</h3>
+            <p>Stack blocks as high as you can without letting one slip.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>GameZone. Free to play.</p>
+    <p>Scores are saved on this device only.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var cv = $('game'), ctx = cv.getContext('2d');
+  var screenEl = $('screen'), overlay = $('overlay'), ovTitle = $('ovTitle'), ovSub = $('ovSub'), ovBtn = $('ovBtn');
+  var scoreEl = $('score'), bestEl = $('best'), attemptEl = $('attempt');
+  var jumpBtn = $('jumpBtn'), restartBtn = $('restartBtn'), soundBtn = $('soundBtn'), playNow = $('playNow');
+
+  var H = 400, GROUND = 330, SIZE = 44, SP = 44, SPH = 46, CX = 110;
+  var GRAV = 2800, JUMP_V = 880, STEP = 1 / 120, TILE = 260;
+  var RIDGE = [20, 60, 55, 100, 90, 45, 130, 110, 170, 50, 210, 85, 260, 0];
+  var W = 600, scale = 1;
+  var state = 'ready', dist = 0, speed = 380, score = 0, best = 0, bestAtStart = 0, attempts = 0, newRecord = false;
+  var y = 0, vy = 0, rot = 0, onGround = true, held = false, buffer = 0, trailT = 0;
+  var obstacles = [], nextGap = 0, particles = [], shake = 0, deadAt = 0, countT = 0, lastCount = 0;
+  var stars = [], inView = true, muted = false, ac = null, bgLayer = null;
+
+  try { best = parseInt(localStorage.getItem('gamezone-cube-best'), 10) || 0; } catch (e) {}
+  try { muted = localStorage.getItem('gamezone-muted') === '1'; } catch (e) {}
+
+  function pad(n) { var s = String(n); while (s.length < 5) s = '0' + s; return s; }
+  function updateSoundBtn() {
+    soundBtn.textContent = muted ? 'Sound off' : 'Sound on';
+    soundBtn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+  }
+  function renderHud() {
+    scoreEl.textContent = pad(score);
+    bestEl.textContent = pad(best);
+    attemptEl.textContent = String(attempts);
+  }
+
+  /* ---------- sound ---------- */
+  function initAudio() {
+    try {
+      if (!ac) { var C = window.AudioContext || window.webkitAudioContext; if (C) ac = new C(); }
+      if (ac && ac.state === 'suspended') ac.resume();
+    } catch (e) {}
+  }
+  function tone(f1, f2, dur, type, vol) {
+    if (!ac || muted) return;
+    try {
+      var t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(f1, t);
+      o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  }
+
+  /* ---------- sizing and static background ---------- */
+  function initStars() {
+    stars = [];
+    for (var i = 0; i < 48; i++) {
+      stars.push({ x: Math.random() * W, y: Math.random() * (GROUND - 120), s: 1 + Math.random() * 1.6, p: 0.02 + Math.random() * 0.06 });
+    }
+  }
+  function buildBg() {
+    bgLayer = document.createElement('canvas');
+    bgLayer.width = cv.width; bgLayer.height = cv.height;
+    var b = bgLayer.getContext('2d');
+    b.setTransform(scale, 0, 0, scale, 0, 0);
+    var g = b.createLinearGradient(0, 0, 0, GROUND);
+    g.addColorStop(0, '#05031a'); g.addColorStop(0.6, '#150a47'); g.addColorStop(1, '#2a0f6b');
+    b.fillStyle = g; b.fillRect(0, 0, W, H);
+    var sx = W * 0.7, sy = GROUND - 110, r = 72;
+    var sg = b.createLinearGradient(0, sy - r, 0, sy + r);
+    sg.addColorStop(0, '#3b8cff'); sg.addColorStop(1, '#d04bff');
+    b.fillStyle = sg;
+    [[-72, -30], [-26, 2], [6, 28], [32, 48], [52, 64], [68, 76]].forEach(function (bd) {
+      b.save(); b.beginPath(); b.rect(sx - r, sy + bd[0], r * 2, bd[1] - bd[0]); b.clip();
+      b.beginPath(); b.arc(sx, sy, r, 0, Math.PI * 2); b.fill(); b.restore();
+    });
+  }
+  function resize() {
+    var r = cv.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(r.width * dpr);
+    cv.height = Math.round(r.height * dpr);
+    scale = cv.height / H;
+    W = cv.width / scale;
+    initStars();
+    buildBg();
+  }
+
+  /* ---------- game flow ---------- */
+  function setOverlay(m) {
+    overlay.classList.toggle('hide', m === 'running');
+    ovBtn.hidden = m !== 'dead';
+    ovSub.classList.toggle('blink', m === 'ready' || m === 'paused');
+    if (m === 'ready') { ovTitle.textContent = 'CUBE DASH'; ovSub.textContent = 'Tap the screen to start'; }
+    else if (m === 'paused') { ovTitle.textContent = 'PAUSED'; ovSub.textContent = 'Tap the screen to restart the run'; }
+    else if (m === 'count') { ovTitle.textContent = '3'; ovSub.textContent = 'Get ready'; }
+    else if (m === 'dead') {
+      ovTitle.textContent = 'CRASH!';
+      ovSub.textContent = (newRecord ? 'New record! ' : '') + 'Score ' + score + '  Best ' + best;
+    }
+  }
+  function startRun() {
+    dist = 0; speed = 380; score = 0; y = 0; vy = 0; rot = 0; onGround = true;
+    obstacles = []; particles = []; nextGap = 220; buffer = 0; held = false; trailT = 0; shake = 0;
+    bestAtStart = best; newRecord = false; attempts++;
+    state = 'running';
+    setOverlay('running');
+    renderHud();
+  }
+  function pause() {
+    state = 'paused'; held = false; setOverlay('paused');
+  }
+  function pushP(x, py, vx, pvy, life, size, color) {
+    particles.push({ x: x, y: py, vx: vx, vy: pvy, l: life, ml: life, s: size, c: color });
+  }
+  function doJump() {
+    vy = JUMP_V; onGround = false; buffer = 0;
+    tone(420, 880, 0.12, 'square', 0.05);
+  }
+  function die() {
+    state = 'dead'; held = false; deadAt = performance.now(); shake = 0.3;
+    var cx = CX + SIZE / 2, cy = GROUND - y - SIZE / 2, cols = ['#3b8cff', '#b14cff', '#e6d4ff', '#7fb4ff'];
+    for (var i = 0; i < 30; i++) {
+      var a = Math.random() * Math.PI * 2, v = 120 + Math.random() * 380;
+      pushP(cx, cy, Math.cos(a) * v, Math.sin(a) * v - 120, 0.6 + Math.random() * 0.6, 4 + Math.random() * 7, cols[i % 4]);
+    }
+    newRecord = score > bestAtStart && score > 0;
+    if (score > best) best = score;
+    try { localStorage.setItem('gamezone-cube-best', String(best)); } catch (e) {}
+    renderHud();
+    tone(300, 50, 0.35, 'sawtooth', 0.07);
+    setTimeout(function () { if (state === 'dead') setOverlay('dead'); }, 380);
+  }
+  function spawn() {
+    var n = 1, r = Math.random();
+    if (score > 40 && r < 0.25) n = 3; else if (score > 12 && r < 0.55) n = 2;
+    var w = n * SP;
+    obstacles.push({ x: W + 30, n: n, w: w });
+    nextGap = w + speed * 0.63 + 90 + Math.random() * 200;
+  }
+
+  function step(dt) {
+    var i;
+    if (particles.length) {
+      for (i = particles.length - 1; i >= 0; i--) {
+        var p = particles[i];
+        p.x += p.vx * dt; p.vy += 1600 * dt; p.y += p.vy * dt; p.l -= dt;
+        if (p.l <= 0) particles.splice(i, 1);
+      }
+    }
+    if (shake > 0) shake = Math.max(0, shake - dt);
+    if (state === 'ready' || state === 'count' || state === 'paused') dist += 120 * dt;
+    if (state === 'count') {
+      countT -= dt;
+      var n = Math.max(1, Math.ceil(countT / 0.6));
+      if (n !== lastCount) { lastCount = n; ovTitle.textContent = String(n); }
+      if (countT <= 0) startRun();
+      return;
+    }
+    if (state !== 'running') return;
+
+    speed = Math.min(680, 380 + dist / 70);
+    dist += speed * dt;
+    var s = Math.floor(dist / 30);
+    if (s !== score) {
+      score = s;
+      if (score > best) best = score;
+      renderHud();
+    }
+    if (buffer > 0) buffer -= dt;
+    if (onGround && (buffer > 0 || held)) doJump();
+    if (!onGround) {
+      vy -= GRAV * dt; y += vy * dt; rot += 5 * dt;
+      if (y <= 0 && vy < 0) {
+        y = 0; vy = 0; onGround = true;
+        rot = Math.round(rot / (Math.PI / 2)) * (Math.PI / 2);
+        rot = rot % (Math.PI * 2);
+        for (i = 0; i < 6; i++) pushP(CX + SIZE / 2, GROUND - 2, (Math.random() - 0.5) * 220, -Math.random() * 90, 0.3, 3 + Math.random() * 3, '#7fb4ff');
+      }
+    } else {
+      trailT -= dt;
+      if (trailT <= 0) {
+        trailT = 0.045;
+        pushP(CX + 4, GROUND - 3, -speed * 0.25 - Math.random() * 40, -Math.random() * 70, 0.35, 3 + Math.random() * 3, '#5aa2ff');
+      }
+    }
+    for (i = obstacles.length - 1; i >= 0; i--) {
+      obstacles[i].x -= speed * dt;
+      if (obstacles[i].x + obstacles[i].w < -20) obstacles.splice(i, 1);
+    }
+    nextGap -= speed * dt;
+    if (nextGap <= 0) spawn();
+
+    var cl = CX + 7, cr = CX + SIZE - 7, cb = GROUND - y - 3, spikeTop = GROUND - SPH * 0.72;
+    for (i = 0; i < obstacles.length; i++) {
+      var o = obstacles[i];
+      for (var k = 0; k < o.n; k++) {
+        var sx = o.x + k * SP;
+        if (cr > sx + SP * 0.24 && cl < sx + SP * 0.76 && cb > spikeTop) { die(); return; }
+      }
+    }
+  }
+
+  /* ---------- drawing ---------- */
+  function rr(x, yy, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, yy);
+    ctx.arcTo(x + w, yy, x + w, yy + h, r);
+    ctx.arcTo(x + w, yy + h, x, yy + h, r);
+    ctx.arcTo(x, yy + h, x, yy, r);
+    ctx.arcTo(x, yy, x + w, yy, r);
+    ctx.closePath();
+  }
+  function drawSpike(x) {
+    ctx.beginPath();
+    ctx.moveTo(x + 1, GROUND);
+    ctx.lineTo(x + SP / 2, GROUND - SPH);
+    ctx.lineTo(x + SP - 1, GROUND);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  }
+  function render() {
+    if (!bgLayer) return;
+    var i, g;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(bgLayer, 0, 0);
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    if (shake > 0) {
+      var m = 10 * shake / 0.3;
+      ctx.translate((Math.random() - 0.5) * m, (Math.random() - 0.5) * m);
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    for (i = 0; i < stars.length; i++) {
+      var st = stars[i], sx = (((st.x - dist * st.p) % W) + W) % W;
+      ctx.fillRect(sx, st.y, st.s, st.s);
+    }
+    var off = (dist * 0.1) % TILE;
+    ctx.fillStyle = '#160a4a';
+    ctx.strokeStyle = 'rgba(59,140,255,0.4)';
+    ctx.lineWidth = 1.5;
+    for (var ox = -off; ox < W; ox += TILE) {
+      ctx.beginPath();
+      ctx.moveTo(ox, GROUND);
+      for (i = 0; i < RIDGE.length; i += 2) ctx.lineTo(ox + RIDGE[i], GROUND - RIDGE[i + 1]);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+    }
+    g = ctx.createLinearGradient(0, GROUND, 0, H);
+    g.addColorStop(0, '#1a0d55'); g.addColorStop(1, '#07051a');
+    ctx.fillStyle = g;
+    ctx.fillRect(-20, GROUND, W + 40, H - GROUND + 20);
+    ctx.strokeStyle = 'rgba(120,100,255,0.32)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    var go = dist % 70;
+    for (var gx = -go; gx < W + 70; gx += 70) { ctx.moveTo(gx, GROUND); ctx.lineTo(W / 2 + (gx - W / 2) * 1.9, H); }
+    ctx.moveTo(0, GROUND + 14); ctx.lineTo(W, GROUND + 14);
+    ctx.moveTo(0, GROUND + 36); ctx.lineTo(W, GROUND + 36);
+    ctx.stroke();
+    ctx.save();
+    ctx.shadowColor = '#b14cff'; ctx.shadowBlur = 14;
+    ctx.strokeStyle = '#d58bff'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-20, GROUND); ctx.lineTo(W + 20, GROUND); ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.shadowColor = '#b14cff'; ctx.shadowBlur = 10;
+    ctx.fillStyle = '#1b0d52'; ctx.strokeStyle = '#d36bff'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+    for (i = 0; i < obstacles.length; i++) {
+      for (var k = 0; k < obstacles[i].n; k++) drawSpike(obstacles[i].x + k * SP);
+    }
+    ctx.restore();
+
+    if (state !== 'dead') {
+      var cy = GROUND - SIZE - y;
+      ctx.save();
+      ctx.translate(CX + SIZE / 2, cy + SIZE / 2);
+      ctx.rotate(rot);
+      ctx.shadowColor = '#3b8cff'; ctx.shadowBlur = 18;
+      var cg = ctx.createLinearGradient(-SIZE / 2, -SIZE / 2, SIZE / 2, SIZE / 2);
+      cg.addColorStop(0, '#52a4ff'); cg.addColorStop(1, '#8f3dff');
+      ctx.fillStyle = cg;
+      rr(-SIZE / 2, -SIZE / 2, SIZE, SIZE, 5); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#d9e8ff'; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2;
+      ctx.strokeRect(-SIZE * 0.3, -SIZE * 0.3, SIZE * 0.6, SIZE * 0.6);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(-11, -8, 7, 10); ctx.fillRect(4, -8, 7, 10);
+      ctx.restore();
+    }
+
+    for (i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      ctx.globalAlpha = Math.max(0, p.l / p.ml);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(p.x - p.s / 2, p.y - p.s / 2, p.s, p.s);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  var acc = 0, last = 0;
+  function frame(t) {
+    var dt = Math.min(0.05, (t - last) / 1000 || 0);
+    last = t;
+    acc += dt;
+    while (acc >= STEP) { step(STEP); acc -= STEP; }
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- input ---------- */
+  function press() {
+    initAudio();
+    if (state === 'running') { held = true; buffer = 0.12; }
+    else if (state === 'ready' || state === 'paused') { startRun(); }
+    else if (state === 'dead') { if (performance.now() - deadAt > 450) startRun(); }
+  }
+  function release() { held = false; }
+  function focusGame() { try { cv.focus({ preventScroll: true }); } catch (e) {} }
+
+  cv.addEventListener('pointerdown', function (e) { e.preventDefault(); press(); });
+  cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  jumpBtn.addEventListener('pointerdown', function (e) { e.preventDefault(); press(); });
+  jumpBtn.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  window.addEventListener('pointerup', release);
+  window.addEventListener('pointercancel', release);
+  window.addEventListener('blur', release);
+
+  window.addEventListener('keydown', function (e) {
+    var id = e.target && e.target.id;
+    var isJumpKey = e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW';
+    if (isJumpKey) {
+      if (!inView) return;
+      if (id === 'restartBtn' || id === 'soundBtn' || id === 'ovBtn' || id === 'playNow') return;
+      e.preventDefault();
+      if (!e.repeat) press();
+    } else if (e.code === 'KeyR' && inView) {
+      startRun();
+    }
+  });
+  window.addEventListener('keyup', function (e) {
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') release();
+  });
+
+  restartBtn.addEventListener('click', function () { initAudio(); startRun(); focusGame(); });
+  ovBtn.addEventListener('click', function () { initAudio(); startRun(); focusGame(); });
+  soundBtn.addEventListener('click', function () {
+    muted = !muted;
+    try { localStorage.setItem('gamezone-muted', muted ? '1' : '0'); } catch (e) {}
+    updateSoundBtn();
+    initAudio();
+    if (!muted) tone(500, 900, 0.1, 'square', 0.05);
+  });
+
+  function goTo(id) {
+    var el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  playNow.addEventListener('click', function () {
+    initAudio();
+    goTo('play');
+    setTimeout(function () {
+      if (state !== 'running') {
+        state = 'count'; countT = 1.8; lastCount = 0; held = false;
+        setOverlay('count');
+        focusGame();
+      }
+    }, 500);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('a[href^="#"]'), function (a) {
+    a.addEventListener('click', function (e) {
+      var id = a.getAttribute('href').slice(1);
+      if (id) { e.preventDefault(); goTo(id); }
+    });
+  });
+
+  document.addEventListener('visibilitychange', function () { if (document.hidden && state === 'running') pause(); });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) {
+      inView = es[0].isIntersecting;
+      if (!inView && state === 'running') pause();
+    }, { threshold: 0.25 }).observe(screenEl);
+  }
+
+  if ('ResizeObserver' in window) new ResizeObserver(resize).observe(cv);
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', resize);
+
+  updateSoundBtn();
+  renderHud();
+  setOverlay('ready');
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
